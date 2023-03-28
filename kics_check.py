@@ -26,6 +26,8 @@ def main(path="kics"):
                     name=check["queryName"],
                 )
             )
+
+    Path('kics_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
     print(stats)
 
 

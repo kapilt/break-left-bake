@@ -1,8 +1,15 @@
+from pathlib import Path
+import json
 from collections import Counter
 
 from checkov import main as side_effect
 from checkov.common.util.docs_generator import get_checks
 
+NORMALIZED_PROVIDER_NAMES = {
+    'aws': 'aws',
+    'azurerm': 'azure',
+    'google': 'gcp',
+}
 
 def main():
 
@@ -22,10 +29,12 @@ def main():
 
         if provider not in ("aws", "azurerm", "google"):
             continue
+        rule["provider"] = NORMALIZED_PROVIDER_NAMES[provider]
         rules.append(rule)
         rule_ids.add(rule["id"])
         stats[provider] += 1
 
+    Path('checkov_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
     print(stats)
 
 
