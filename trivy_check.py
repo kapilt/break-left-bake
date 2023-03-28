@@ -82,6 +82,7 @@ def extract_rule(lines):
     rule["description"] = rule.pop("explanation")
     rule["id"] = rule.pop("avdid")
     rule["provider"] = NORMALIZED_PROVIDER_NAMES[rule["provider"]]
+    rule["severity"] = rule["severity"].split(".")[1]
     return rule
 
 

@@ -21,7 +21,7 @@ def main(path="kics"):
                 dict(
                     id=check["id"],
                     provider=check["cloudProvider"],
-                    severity=check["severity"].lower(),
+                    severity=check["severity"].title(),
                     description=check["descriptionText"],
                     name=check["queryName"],
                 )

@@ -20,6 +20,7 @@ def main(path="terrascan"):
         for cpath in checks:
             c = json.loads(cpath.read_text())
             c["provider"] = c.pop("policy_type")
+            c["severity"] = c["severity"].title()
             rules.append(
                 {
                     k: v
