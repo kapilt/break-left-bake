@@ -16,18 +16,19 @@ def main(path="kics"):
             check = json.loads(check_path.read_text())
 
             stats[check["cloudProvider"]] += 1
-
             rules.append(
                 dict(
                     id=check["id"],
                     provider=check["cloudProvider"],
                     severity=check["severity"].title(),
                     description=check["descriptionText"],
-                    name=check["queryName"],
+                    name=check_path.parent.name,
+                    category=check["category"],
+                    path=str(check_path),
                 )
             )
 
-    Path('kics_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
+    Path("kics_rules.jsonl").write_text("\n".join(json.dumps(rule) for rule in rules))
     print(stats)
 
 

@@ -5,20 +5,21 @@ import pprint
 
 
 NORMALIZED_PROVIDER_NAMES = {
-    'providers.AWSProvider': 'aws',
-    'providers.AzureProvider': 'azure',
-    'providers.GoogleProvider': 'gcp',
+    "providers.AWSProvider": "aws",
+    "providers.AzureProvider": "azure",
+    "providers.GoogleProvider": "gcp",
 }
 
+
 def main(path="defsec"):
-    rules_dir = Path(path) / "rules" / "cloud" / "policies"
+    rules_dir = Path(path) / "internal" / "rules"
 
     rules = []
     stats = Counter()
+
     for provider in ("aws", "azure", "google"):
         provider_dir = rules_dir / provider
         for rule_file in provider_dir.rglob("*.go"):
-
             if "test" in rule_file.name:
                 continue
             if ".tf." in rule_file.name:
@@ -28,17 +29,30 @@ def main(path="defsec"):
 
             rule = extract_rule(rule_file.read_text().splitlines())
             if rule:
+                rule["path"] = str(rule_file)
                 stats[provider] += 1
                 rules.append(rule)
 
-    Path('trivy_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
+    Path("trivy_rules.jsonl").write_text(
+        "\n".join(json.dumps(normalize_rule(rule)) for rule in rules)
+    )
     print(stats)
+
 
 #    print(len(rules))
 
 
-def extract_rule(lines):
+def normalize_rule(rule):
+    rule["name"] = rule.pop("shortcode")
+    rule["description"] = rule.pop("explanation")
+    rule["id"] = rule.pop("avdid")
+    rule["provider"] = NORMALIZED_PROVIDER_NAMES[rule["provider"]]
+    rule["severity"] = rule["severity"].split(".")[1]
+    rule["category"] = ""
+    return rule
 
+
+def extract_rule(lines):
     start_token = "scan.Rule{"
     end_token = "},"
 
@@ -72,17 +86,14 @@ def extract_rule(lines):
     rule = {}
     block = lines[start_pos[0] + 1 : end_pos]
 
-    for l in block:
+    in_framework = False
+    for idx, l in enumerate(block):
         for k in rule_keys:
             if l.strip().startswith(k):
                 v = l.split(":", 1)[-1]
                 v = v.strip().strip('",`')
                 rule[k.lower()] = v
-    rule["name"] = rule.pop("summary")
-    rule["description"] = rule.pop("explanation")
-    rule["id"] = rule.pop("avdid")
-    rule["provider"] = NORMALIZED_PROVIDER_NAMES[rule["provider"]]
-    rule["severity"] = rule["severity"].split(".")[1]
+
     return rule
 
 

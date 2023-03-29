@@ -4,7 +4,6 @@ from pathlib import Path
 
 
 def main(path="terrascan"):
-
     check_dir = Path(path) / "pkg" / "policies" / "opa" / "rego"
     stats = Counter()
     rules = []
@@ -25,12 +24,17 @@ def main(path="terrascan"):
                 {
                     k: v
                     for k, v in c.items()
-                    if k in ("provider", "severity", "description", "id", "category")
+                    if k
+                    in ("name", "provider", "severity", "description", "id", "category")
                 }
             )
+            rules[-1]["path"] = str(cpath)
     print(stats)
 
-    Path('terrascan_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
+    Path("terrascan_rules.jsonl").write_text(
+        "\n".join(json.dumps(rule) for rule in rules)
+    )
+
 
 #    print(len(rules))
 
