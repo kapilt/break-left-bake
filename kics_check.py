@@ -21,11 +21,13 @@ def main(path="kics"):
                 dict(
                     id=check["id"],
                     provider=check["cloudProvider"],
-                    severity=check["severity"].lower(),
+                    severity=check["severity"].title(),
                     description=check["descriptionText"],
                     name=check["queryName"],
                 )
             )
+
+    Path('kics_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
     print(stats)
 
 

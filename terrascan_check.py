@@ -19,15 +19,18 @@ def main(path="terrascan"):
         stats[provider + "_unique"] += len(defines)
         for cpath in checks:
             c = json.loads(cpath.read_text())
+            c["provider"] = c.pop("policy_type")
+            c["severity"] = c["severity"].title()
             rules.append(
                 {
                     k: v
                     for k, v in c.items()
-                    if k in ("policy_type", "severity", "description", "id", "category")
+                    if k in ("provider", "severity", "description", "id", "category")
                 }
             )
     print(stats)
 
+    Path('terrascan_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
 
 #    print(len(rules))
 

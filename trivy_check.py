@@ -1,10 +1,17 @@
+import json
 from collections import Counter
 from pathlib import Path
 import pprint
 
 
+NORMALIZED_PROVIDER_NAMES = {
+    'providers.AWSProvider': 'aws',
+    'providers.AzureProvider': 'azure',
+    'providers.GoogleProvider': 'gcp',
+}
+
 def main(path="defsec"):
-    rules_dir = Path(path) / "internal" / "rules"
+    rules_dir = Path(path) / "rules" / "cloud" / "policies"
 
     rules = []
     stats = Counter()
@@ -24,8 +31,8 @@ def main(path="defsec"):
                 stats[provider] += 1
                 rules.append(rule)
 
+    Path('trivy_rules.jsonl').write_text('\n'.join(json.dumps(rule) for rule in rules))
     print(stats)
-
 
 #    print(len(rules))
 
@@ -69,8 +76,13 @@ def extract_rule(lines):
         for k in rule_keys:
             if l.strip().startswith(k):
                 v = l.split(":", 1)[-1]
-                v = v.strip().strip('"').strip(",")
+                v = v.strip().strip('",`')
                 rule[k.lower()] = v
+    rule["name"] = rule.pop("summary")
+    rule["description"] = rule.pop("explanation")
+    rule["id"] = rule.pop("avdid")
+    rule["provider"] = NORMALIZED_PROVIDER_NAMES[rule["provider"]]
+    rule["severity"] = rule["severity"].split(".")[1]
     return rule
 
 
